@@ -1,0 +1,76 @@
+﻿---
+- hosts: Prueba
+  tasks:
+
+  - name: "Delete Lines With IPv4"
+    lineinfile:
+      path: /etc/sysctl.conf
+      regexp: 'net.ipv4.*'
+      state: absent
+
+  - name: "Delete Lines With IPv6"
+    lineinfile:
+      path: /etc/sysctl.conf
+      regexp: 'net.ipv6.*'
+      state: absent
+
+  - name: "Delete Lines With IPv6"
+    lineinfile:
+      path: /etc/sysctl.conf
+      regexp: 'kernel.randomize_va_space=2'
+      state: absent
+
+  - name: "Delete Repeat Lines"
+    lineinfile:
+      path: /etc/ssh/sshd_config
+      regexp: "#LogLevel INFO"
+      state: absent
+
+  - name: "Delete Repeat Lines"
+    lineinfile:
+      path: /etc/ssh/sshd_config
+      regexp: "#IgnoreRhosts yes"
+      state: absent
+
+  - name: "Delete Repeat Lines"
+    lineinfile:
+      path: /etc/ssh/sshd_config
+      regexp: "#PermitEmptyPasswords no"
+      state: absent
+
+  - name: "Delete Repeat Lines"
+    lineinfile:
+      path: /etc/ssh/sshd_config
+      regexp: "#HostbasedAuthentication no"
+      state: absent
+
+  - name: "Delete Repeat Lines"
+    lineinfile:
+      path: /etc/ssh/sshd_config
+      regexp: "#PermitRootLogin yes"
+      state: absent
+
+  - name: "Delete Core Dumps"
+    lineinfile:
+      path: /etc/security/limits.conf
+      regexp: "hard    core"
+      state: absent
+
+  - name: "Delete SUID Dumplable"
+    lineinfile:
+      path: /etc/security/limits.conf
+      regexp: "fs.suid_dumpable=0"
+      state: absent
+
+  - name: "Delete IPv6 RA"
+    lineinfile:
+      path: /etc/sysctl.conf
+      regexp: 'net\.ipv6\.conf\.default\.accept_ra,\s+value\:\s+0'
+      state: absent
+
+  - name: Ansible copy file to remote server
+    copy:
+      src: /etc/ansible/files/Hardening/Valida_Hardening_Rhel7.sh
+      dest: /tmp/
+      mode: 0744
+

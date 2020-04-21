@@ -1,0 +1,180 @@
+---
+- hosts: Prueba
+  tasks:
+
+  - name: "SCORED | 5.2.1.1 | PATCH | Remove the Telnet-server package"
+    yum:
+      name: telnet-server
+      state: absent
+  - name: "SCORED | 5.2.1.2 | PATCH | Remove the Telnet package"
+    yum:
+      name: telnet
+      state: absent
+
+  - name: "SCORED | 5.2.1.3 | PATCH | Remove the rsh-server package"
+    yum:
+      name: rsh-server
+      state: absent
+  - name: "SCORED | 5.2.1.4 | PATCH | Remove the rsh package"
+    yum:
+      name: rsh
+      state: absent
+  - name: "SCORED | 5.2.1.5 | PATCH | Remove the ypbind package"
+    yum:
+      name: ypbind
+      state: absent
+  - name: "SCORED | 5.2.1.6 | PATCH | Remove the ypserv package"
+    yum:
+      name: ypserv
+      state: absent
+
+  - name: "SCORED | 5.2.1.6 | PATCH | Remove the ypserv package"
+    yum:
+      name: tokyocabinet
+      state: absent
+
+  - name: "SCORED | 5.2.1.7 | PATCH | Ensure tftp server is not enabled"
+    block:
+      - name: "SCORED | 5.2.1.7 | PATCH | Ensure tftp server is not enabled"
+        stat:
+            path: /etc/xinetd.d/tftp
+        register: tftp_service
+
+      - name: "SCORED | 5.2.1.7 | PATCH | Ensure tftp server is not enabled"
+        command: chkconfig tftp off
+        notify: restart xinetd
+        when: tftp_service.stat.exists and not rhel7cis_tftp_server
+
+
+  - name: "SCORED | 5.2.1.8 | PATCH | Remove the tftp server package"
+    yum:
+      name: tftp-server
+      state: absent
+  - name: "SCORED | 5.2.1.9 | PATCH | Remove the talk package"
+    yum:
+      name: talk
+      state: absent
+
+  - name: "SCORED | 5.2.1.10 | PATCH | Remove talk server package"
+    yum:
+      name: talk-server
+      state: absent
+
+
+  - name: "SCORED | 5.2.1.11 | PATCH | Remove xinetd package"
+    yum:
+      name: xinetd
+      state: absent
+
+  - name: "SCORED | 5.2.1.12 - 13 | PATCH | Ensure chargen services are not enabled | chargen-dgram,chargen-stream"
+    block:
+      - name: "SCORED | 5.2.1.12 | PATCH | Ensure chargen services are not enabled | chargen-dgram"
+        stat:
+            path: /etc/xinetd.d/chargen-dgram
+        register: chargen_dgram_service
+
+      - name: "SCORED | 5.2.1.12 | PATCH | Ensure chargen services are not enabled | chargen-dgram"
+        command: chkconfig chargen-dgram off
+        notify: restart xinetd
+        when: chargen_dgram_service.stat.exists
+
+      - name: "SCORED | 5.2.1.13 | PATCH | Ensure chargen services are not enabled | chargen-stream"
+        stat:
+            path: /etc/xinetd.d/chargen-stream
+        register: chargen_stream_service
+
+      - name: "SCORED | 5.2.1.13 | PATCH | Ensure chargen services are not enabled | chargen-stream"
+        command: chkconfig chargen-stream off
+        notify: restart xinetd
+        when: chargen_stream_service.stat.exists
+
+  - name: "SCORED | 5.2.1.14 y 16 | PATCH | Ensure daytime services are not enabled | daytime-dgram,daytime-stream"
+    block:
+      - name: "SCORED | 5.2.1.14 | PATCH | Ensure daytime services are not enabled | daytime-dgram"
+        stat:
+            path: /etc/xinetd.d/daytime-dgram
+        register: daytime_dgram_service
+
+      - name: "SCORED | 5.2.1.14 | PATCH | Ensure daytime services are not enabled | daytime-dgram"
+        command: chkconfig daytime-dgram off
+        notify: restart xinetd
+        when: daytime_dgram_service.stat.exists
+
+      - name: "SCORED | 5.2.1.16 | PATCH | Ensure daytime services are not enabled | daytime-stream"
+        stat:
+            path: /etc/xinetd.d/daytime-stream
+        register: daytime_stream_service
+
+      - name: "SCORED | 5.2.1.16 | PATCH | Ensure daytime services are not enabled | daytime-stream"
+        command: chkconfig daytime-stream off
+        notify: restart xinetd
+        when: daytime_stream_service.stat.exists
+
+  - name: "SCORED | 5.2.1.15 | PATCH | Ensure discard services are not enabled | discard-dgram,discard-stream"
+    block:
+      - name: "SCORED | 5.2.1.15 | PATCH | Ensure discard services are not enabled | discard-dgram"
+        stat:
+            path: /etc/xinetd.d/discard-dgram
+        register: discard_dgram_service
+
+      - name: "SCORED | 5.2.1.15 | PATCH | Ensure discard services are not enabled | discard-dgram"
+        command: chkconfig discard-dgram off
+        notify: restart xinetd
+        when: discard_dgram_service.stat.exists
+
+      - name: "SCORED | 5.2.1.15 | PATCH | Ensure discard services are not enabled | discard-stream"
+        stat:
+            path: /etc/xinetd.d/discard-stream
+        register: discard_stream_service
+
+      - name: "SCORED | 5.2.1.15 | PATCH | Ensure discard services are not enabled | discard-stream"
+        command: chkconfig discard-stream off
+        notify: restart xinetd
+        when: discard_stream_service.stat.exists
+
+  - name: "SCORED | 5.2.1.17 - 18 | PATCH | Ensure echo services are not enabled | echo-dgram,echo-stream"
+    block:
+      - name: "SCORED | 5.2.1.17 | PATCH | Ensure echo services are not enabled | echo-dgram"
+        stat:
+            path: /etc/xinetd.d/echo-dgram
+        register: echo_dgram_service
+
+      - name: "SCORED | 5.2.1.17 | PATCH | Ensure echo services are not enabled | echo-dgram"
+        command: chkconfig echo-dgram off
+        notify: restart xinetd
+        when: echo_dgram_service.stat.exists
+
+      - name: "SCORED | 5.2.1.18 | PATCH | Ensure echo services are not enabled | echo-stream"
+        stat:
+            path: /etc/xinetd.d/echo-stream
+        register: echo_stream_service
+
+      - name: "SCORED | 5.2.1.18 | PATCH | Ensure echo services are not enabled | echo-stream"
+        command: chkconfig echo-stream off
+        notify: restart xinetd
+        when: echo_stream_service.stat.exists
+
+  - name: "PRELIM | Check for autofs service"
+    shell: "systemctl show autofs | grep LoadState | cut -d = -f 2"
+    register: autofs_service_status
+    changed_when: no
+    check_mode: no
+  - name: "SCORED | 1.1.22 | PATCH | Disable Automounting"
+    service:
+      name: autofs
+      enabled: no
+    when:
+      - autofs_service_status.stdout == "loaded"
+
+  - name: "PRELIM | Check for autofs service"
+    shell: "systemctl show autofs | grep SubState | cut -d = -f 2"
+    register: autofs_service_status
+    changed_when: no
+    check_mode: no
+  - name: "SCORED | 1.1.22 | PATCH | Disable Automounting"
+    systemd:
+      name: autofs
+      state: stopped
+    when:
+      - autofs_service_status.stdout == "running"
+

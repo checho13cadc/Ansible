@@ -1,0 +1,33 @@
+---
+- hosts: Prueba
+  tasks:
+  - name: "SCORED | 5.4.3.1 | PATCH | Ensure AIDE is installed"
+    yum:
+      name: aide
+      state: present
+    register: aide_present
+    retries: 3
+    until: aide_present is succeeded
+    delay: 5
+
+  - name: "SCORED | 5.4.3.1 | PATCH | Ensure AIDE is installed"
+    command: /usr/sbin/aide --init -B 'database_out=file:/var/lib/aide/aide.db.gz'
+    args:
+      creates: /var/lib/aide/aide.db.gz
+    changed_when: no
+    failed_when: no
+    async: 45
+    poll: 0
+
+  - name: "SCORED | 5.4.3.2 | PATCH | Ensure filesystem integrity is regularly checked"
+    cron:
+      name: Run AIDE integrity check
+      user: "root"
+      cron_file: "/var/spool/cron/root"
+      minute: "0"
+      hour: "5"
+      day: "*"
+      month: "*"
+      weekday: "*"
+      job: "'/usr/sbin/aide --check'"
+

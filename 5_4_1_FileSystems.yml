@@ -1,0 +1,142 @@
+---
+- hosts: Prueba
+  tasks:
+  - name: "SCORED | 5.4.1.18 | PATCH | Ensure mounting of cramfs filesystems is disabled"
+    lineinfile:
+      dest: /etc/modprobe.d/CIS.conf
+      regexp: "^(#)?install cramfs(\\s|$)"
+      line: "install cramfs /bin/true"
+      create: yes
+
+  - name: "SCORED | 5.4.1.18 | PATCH | Remove cramfs module"
+    modprobe:
+      name: cramfs
+      state: absent
+
+  - name: "SCORED | 5.4.1.19 | PATCH | Ensure mounting of freevxfs filesystems is disabled"
+    lineinfile:
+      dest: /etc/modprobe.d/CIS.conf
+      regexp: "^(#)?install freevxfs(\\s|$)"
+      line: "install freevxfs /bin/true"
+      create: yes
+
+  - name: "SCORED | 5.4.1.19 | PATCH | Remove freevxfs module"
+    modprobe:
+      name: freevxfs
+      state: absent
+
+  - name: "SCORED | 5.4.1.20 | PATCH | Ensure mounting of jffs2 filesystems is disabled"
+    lineinfile:
+      dest: /etc/modprobe.d/CIS.conf
+      regexp: "^(#)?install jffs2(\\s|$)"
+      line: "install jffs2 /bin/true"
+      create: yes
+
+  - name: "SCORED | 5.4.1.20 | PATCH | Remove jffs2 module"
+    modprobe:
+      name: jffs2
+      state: absent
+
+  - name: "SCORED | 5.4.1.21 | PATCH | Ensure mounting of hfs filesystems is disabled"
+    lineinfile:
+      dest: /etc/modprobe.d/CIS.conf
+      regexp: "^(#)?install hfs(\\s|$)"
+      line: "install hfs /bin/true"
+      create: yes
+
+  - name: "SCORED | 5.4.1.21 | PATCH | Remove hfs module"
+    modprobe:
+      name: hfs
+      state: absent
+
+  - name: "SCORED | 5.4.1.22 | PATCH | Ensure mounting of hfsplus filesystems is disabled"
+    lineinfile:
+      dest: /etc/modprobe.d/CIS.conf
+      regexp: "^(#)?install hfsplus(\\s|$)"
+      line: "install hfsplus /bin/true"
+      create: yes
+
+  - name: "SCORED | 5.4.1.22 | PATCH | Remove hfsplus module"
+    modprobe:
+      name: hfsplus
+      state: absent
+
+  - name: "SCORED | 5.4.1.23 | PATCH | Ensure mounting of squashfs filesystems is disabled"
+    lineinfile:
+      dest: /etc/modprobe.d/CIS.conf
+      regexp: "^(#)?install squashfs(\\s|$)"
+      line: "install squashfs /bin/true"
+      create: yes
+
+  - name: "SCORED | 5.4.1.23 | PATCH | Remove squashfs module"
+    modprobe:
+      name: squashfs
+      state: absent
+
+  - name: "SCORED | 5.4.1.24 | PATCH | Ensure mounting of udf filesystems is disabled"
+    lineinfile:
+      dest: /etc/modprobe.d/CIS.conf
+      regexp: "^(#)?install udf(\\s|$)"
+      line: "install udf /bin/true"
+      create: yes
+
+  - name: "SCORED | 5.4.1.24 | PATCH | Remove udf module"
+    modprobe:
+      name: udf
+      state: absent
+
+  - name: "SCORED | 5.4.1.25 | PATCH | Ensure mounting of FAT filesystems is disabled"
+    lineinfile:
+      dest: /etc/modprobe.d/CIS.conf
+      regexp: "^(#)?install vfat(\\s|$)"
+      line: "install vfat /bin/true"
+      create: yes
+
+  - name: "SCORED | 5.4.1.25 | PATCH | Remove FAT module"
+    modprobe:
+      name: vfat
+      state: absent
+
+  - name: "SCORED | 5.5.1.6 | PATCH | Ensure no world writable files exist"
+    shell: for i in  $(df --local -P | grep '^/dev' | awk '{ print $6 }'); do find $i -xdev -type f -perm -0002; done
+    register: command_result
+
+  - debug: msg="{{command_result.stdout_lines}}"
+
+  - name: "Cambiar Propietario"
+    shell: "/usr/bin/chmod o-w {{ item }}"
+    with_items:
+     - "{{ command_result.stdout_lines }}"
+
+  - name: "SCORED | Ensure no unowned files or directories exist | PATCH | Ensure sticky bit is set on all world-writable directories"
+    shell: df --local -P | awk {'if (NR!=1) print $6'} | xargs -I '{}' find '{}' -xdev -type d -perm -0002 2>/dev/null | xargs chmod a+t
+    register: command_result2
+    changed_when: no
+    failed_when: no
+
+  - debug: msg="{{command_result2.stdout_lines}}"
+
+  - name: "Noexec,Nosuid,Nodev /tmp"
+    shell: mount -o remount,noexec,nosuid,nodev /tmp
+    ignore_errors: yes
+
+  - name: "SCORED | 1.1.15 | PATCH | Ensure nodev option set on /dev/shm partition\n
+           SCORED | 1.1.16 | PATCH | Ensure nosuid option set on /dev/shm partition\n
+           SCORED | 1.1.17 | PATCH | Ensure noexec option set on /dev/shm partition"
+    mount:
+      name: /dev/shm
+      src: tmpfs
+      state: mounted
+      fstype: tmpfs
+      opts: "defaults,nodev,nosuid,noexec"
+
+  - name: "SCORED | 1.1.14 | PATCH | Ensure nodev option set on /home partition"
+    mount:
+      name: "/home"
+      src: "{{ item.device }}"
+      state: mounted
+      fstype: "{{ item.fstype }}"
+      opts: "nodev"
+    when:
+      - item.mount == "/home"
+    with_items: "{{ ansible_mounts }}"

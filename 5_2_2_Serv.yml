@@ -1,0 +1,248 @@
+---
+- hosts: Prueba
+  tasks:
+
+  - name: "SCORED | 5.2.2.3 | PATCH | Disable avahi-daemon"
+    shell: "systemctl show avahi-daemon | grep LoadState | cut -d = -f 2"
+    register: avahi_service_status
+    changed_when: no
+    check_mode: no
+  - name: "SCORED | 5.2.2.3 | PATCH | Disable avahi-daemon"
+    service:
+      name: avahi-daemon
+      enabled: no
+    when:
+      - avahi_service_status.stdout == "loaded"
+
+  - name: "SCORED | 5.2.2.3 | PATCH | Disable avahi-daemon"
+    shell: "systemctl show avahi-daemon| grep SubState | cut -d = -f 2"
+    register: avahi_service_status
+    changed_when: no
+    check_mode: no
+  - name: "SCORED | 5.2.2.3 | PATCH | Disable avahi-daemon"
+    systemd:
+      name: avahi-daemon
+      state: stopped
+    when:
+      - avahi_service_status.stdout == "running"
+
+  - name: "SCORED | 5.2.2.4 | PATCH | Disable cups"
+    shell: "systemctl show cups | grep LoadState | cut -d = -f 2"
+    register: cups_service_status
+    changed_when: no
+    check_mode: no
+  - name: "SCORED | 5.2.2.4 | PATCH | Disable cups"
+    service:
+      name: cups
+      enabled: no
+    when:
+      - cups_service_status.stdout == "loaded"
+
+  - name: "SCORED | 5.2.2.4 | PATCH | Disable cups"
+    shell: "systemctl show cups| grep SubState | cut -d = -f 2"
+    register: cups_service_status
+    changed_when: no
+    check_mode: no
+  - name: "SCORED | 5.2.2.4 | PATCH | Disable cups"
+    systemd:
+      name: cups
+      state: stopped
+    when:
+      - cups_service_status.stdout == "running"
+  - name: "SCORED | 5.2.2.5 | PATCH | Disable dhcp"
+    shell: "systemctl show dhcp | grep LoadState | cut -d = -f 2"
+    register: dhcp_service_status
+    changed_when: no
+    check_mode: no
+  - name: "SCORED | 5.2.2.5 | PATCH | Disable dhcp"
+    service:
+      name: dhcp
+      enabled: no
+    when:
+      - dhcp_service_status.stdout == "loaded"
+
+  - name: "SCORED | 5.2.2.5 | PATCH | Disable dhcp"
+    shell: "systemctl show dhcp| grep SubState | cut -d = -f 2"
+    register: dhcp_service_status
+    changed_when: no
+    check_mode: no
+
+  - name: "SCORED | 5.2.2.5 | PATCH | Disable dhcp"
+    systemd:
+      name: dhcp
+      state: stopped
+    when:
+      - dhcp_service_status.stdout == "running"
+
+  - name: "SCORED | 5.2.2.6 | PATCH | Configure NTP"
+    copy:
+      src: /etc/ansible/files/ntp.conf
+      dest: /etc/
+
+  - name: "NOTSCORED | 5.2.2.6 | PATCH | Ensure time synchronization is in use - service start"
+    service:
+      name: "ntpd"
+      state: started
+      enabled: yes
+    ignore_errors: yes    
+
+  - name: "SCORED | 5.2.2.7 | PATCH | Disable LDAP"
+    shell: "systemctl show slapd | grep LoadState | cut -d = -f 2"
+    register: slapd_service_status
+    changed_when: no
+    check_mode: no
+
+  - name: "SCORED | 5.2.2.7 | PATCH | Ensure LDAP server is not enabled"
+    service:
+      name: slapd
+      state: stopped
+      enabled: no
+    when:
+      - slapd_service_status.stdout == "loaded"
+
+#  - name: "SCORED | 5.2.2.8 | PATCH | Disable NFS"
+#    shell: "systemctl show nfs | grep LoadState | cut -d = -f 2"
+#    register: nfs_service_status
+#    changed_when: no
+#    check_mode: no
+
+
+#  - name: "SCORED | 5.2.2.8 | PATCH | Ensure NFS and RPC are not enabled"
+#    service:
+#      name: nfs
+#      state: stopped
+#      enabled: no
+#    when:
+#      - nfs_service_status.stdout == "loaded"
+
+  - name: "SCORED | 5.2.2.8 | PATCH | Disable RPC"
+    shell: "systemctl show rpcbind | grep LoadState | cut -d = -f 2"
+    register: rpcbind_service_status
+    changed_when: no
+    check_mode: no
+
+  - name: "SCORED | 5.2.2.8 | PATCH | Ensure RPC is not enabled"
+    service:
+      name: rpcbind
+      state: stopped
+      enabled: no
+    when:
+      - rpcbind_service_status.stdout == "loaded"
+
+  - name: "SCORED | 5.2.2.8 | PATCH | Disable RPC BIND SOCKET"
+    shell: "systemctl show rpcbind | grep LoadState | cut -d = -f 2"
+    register: rpcbind_socket_service_status
+    changed_when: no
+    check_mode: no
+
+  - name: "SCORED | 5.2.2.8 | PATCH | Ensure RPC BIND SOCKET is not enabled"
+    service:
+      name: rpcbind.socket
+      state: stopped
+      enabled: no
+    when:
+      - rpcbind_socket_service_status.stdout == "loaded"
+
+  - name: "SCORED | 5.2.2.9 | PATCH | Disable DNS"
+    shell: "systemctl show named | grep LoadState | cut -d = -f 2"
+    register: named_service_status
+    changed_when: no
+    check_mode: no
+
+
+  - name: "SCORED | 2.2.9 | PATCH | Ensure DNS Server is not enabled"
+    service:
+      name: named
+      state: stopped
+      enabled: no
+    when:
+      - named_service_status.stdout == "loaded"
+
+  - name: "SCORED | 5.2.2.10 | PATCH | Disable FTP"
+    shell: "systemctl show vsftpd | grep LoadState | cut -d = -f 2"
+    register: vsftpd_service_status
+    changed_when: no
+    check_mode: no
+
+
+  - name: "SCORED | 5.2.2.10 | PATCH | Ensure FTP Server is not enabled"
+    service:
+      name: vsftpd
+      state: stopped
+      enabled: no
+    when:
+      - vsftpd_service_status.stdout == "loaded"
+
+
+  - name: "SCORED | 5.2.2.12 | PATCH | Ensure IMAP and POP3 server is not enabled"
+    shell: "systemctl show dovecot | grep LoadState | cut -d = -f 2"
+    register: dovecot_service_status
+    changed_when: no
+    check_mode: no
+
+
+  - name: "SCORED | 5.2.2.12 | PATCH | Ensure IMAP and POP3 server is not enabled"
+    service:
+      name: dovecot
+      state: stopped
+      enabled: no
+    when:
+      - dovecot_service_status.stdout == "loaded"
+
+  - name: "SCORED | 5.2.2.13 | PATCH | Ensure SAMBA is not enabled"
+    shell: "systemctl show samba | grep LoadState | cut -d = -f 2"
+    register: samba_service_status
+    changed_when: no
+    check_mode: no
+
+
+  - name: "SCORED | 5.2.2.13 | PATCH | Ensure SAMBA is not enabled"
+    service:
+      name: samba
+      state: stopped
+      enabled: no
+    when:
+      - samba_service_status.stdout == "loaded"
+
+  - name: "SCORED | 5.2.2.14 | PATCH | Ensure PROXY HTTP is not enabled"
+    shell: "systemctl show squid | grep LoadState | cut -d = -f 2"
+    register: squid_service_status
+    changed_when: no
+    check_mode: no
+
+
+  - name: "SCORED | 5.2.2.14 | PATCH | Ensure PROXY HTTP is not enabled"
+    service:
+      name: squid
+      state: stopped
+      enabled: no
+    when:
+      - squid_service_status.stdout == "loaded"
+
+  - name: "SCORED | 5.2.2.15 | PATCH | Ensure SNMP is not enabled"
+    shell: "systemctl show snmpd | grep LoadState | cut -d = -f 2"
+    register: snmpd_service_status
+    changed_when: no
+    check_mode: no
+
+  - name: "SCORED | 5.2.2.14 | PATCH | Ensure SNMP is not enabled"
+    service:
+      name: snmpd
+      state: stopped
+      enabled: no
+    when:
+      - snmpd_service_status.stdout == "loaded"
+
+  - name: "SCORED | 5.4.2.4 | PATCH | Ensure RHNSD is not enabled"
+    shell: "systemctl show rhnsd | grep LoadState | cut -d = -f 2"
+    register: rhnsd_service_status
+    changed_when: no
+    check_mode: no
+
+  - name: "SCORED |5.4.2.4 | PATCH | Ensure RHNSD is not enabled"
+    service:
+      name: rhnsd
+      state: stopped
+      enabled: no
+    when:
+      - rhnsd_service_status.stdout == "loaded"

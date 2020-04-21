@@ -1,4 +1,5 @@
 ---
+- import_playbook: 1_2_FixHardening
 - import_playbook: 5_1_1_Crontab.yml
 - import_playbook: 5_1_2_SSH.yml
 - import_playbook: 5_1_3_PAM.yml
@@ -13,3 +14,5 @@
 - import_playbook: 5_4_5_ARRANQUE.yml
 - import_playbook: 5_5_1_Maintenance.yml
 - import_playbook: 5_6_Auditoria.yml
+#- import_playbook: Borra_install_karites.yml
+- import_playbook: VerificaHard.yml

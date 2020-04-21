@@ -1,0 +1,126 @@
+---
+- hosts: Prueba
+  tasks:
+  - name: "SCORED | 5.1.4.1 | PATCH | Ensure password expiration is 30 days or less"
+    lineinfile:
+      state: present
+      dest: /etc/login.defs
+      regexp: '^PASS_MAX_DAYS'
+      line: "PASS_MAX_DAYS 30"
+  - name: "SCORED | 5.1.4.2 | PATCH | PASS_MIN_DAYS is 0 days"
+    lineinfile:
+      state: present
+      dest: /etc/login.defs
+      regexp: '^PASS_MIN_DAYS'
+      line: "PASS_MIN_DAYS 0"
+  - name: "SCORED | 5.1.4.3 | PATCH | PASS_WARN_AGE  is 5 days"
+    lineinfile:
+      state: present
+      dest: /etc/login.defs
+      regexp: '^PASS_WARN_AGE'
+      line: "PASS_WARN_AGE 5"
+
+  - name: "SCORED | 5.1.4.4 | PATCH | Ensure system accounts are non-login"
+    shell: "awk -F: '($3 < {{ 1000 }}) {print $1 }' /etc/passwd"
+    changed_when: no
+    register: system_account
+
+  - name: "SCORED | 5.1.4.4 | PATCH | Ensure system accounts are non-login"
+    user:
+      name: "{{ item }}"
+      shell: /sbin/nologin
+    with_items:
+    - "{{ system_account.stdout_lines }}"
+    when:
+      - item != "root"
+      - item != "sync"
+      - item != "shutdown"
+      - item != "halt"
+      - item != "oracle"
+      - item != "grid"
+      - item != "dsadm"
+      - item != "adminsis"
+      - item != "UserMon"
+      - item != "backup"
+      - item != "cifco"
+      - item != "exawatch"
+      - item != "dbmsvc"
+      - item != "dbmadmin"
+      - item != "dbmmonitor"
+      - item != "grid"
+      - item != "oracle"
+      - item != "opc"
+      - item != "ag800"
+      - item != "crypto"
+      - item != "useraft"
+
+  - name: "SCORED | 5.1.4.4 | PATCH | Ensure system accounts are non-login"
+    user:
+      name: "{{ item }}"
+      password_lock: true
+    with_items:
+      - "{{ system_account.stdout_lines }}"
+    when:
+      - item != "root"
+      - item != "oracle"
+      - item != "grid"
+      - item != "dsadm"
+      - item != "adminsis"
+      - item != "UserMon"
+      - item != "backup"
+      - item != "cifco"
+      - item != "exawatch"
+      - item != "dbmsvc"
+      - item != "dbmadmin"
+      - item != "dbmmonitor"
+      - item != "grid"
+      - item != "oracle"
+      - item != "opc"
+      - item != "ag800"
+      - item != "crypto"
+      - item != "useraft"
+
+  - name: "SCORED | 5.1.4.5 | PATCH | Ensure default group for the root account is GID 0"
+    command: usermod -g 0 root
+    changed_when: no
+    failed_when: no
+
+  - name: "SCORED | 5.1.4.7 | PATCH | Ensure inactive password lock is 30 days or less"
+    shell: "egrep ^[^:]+:[^\\!*] /etc/shadow | cut -d: -f1"
+    register: egrep_5_1_4_7
+    check_mode: no
+    changed_when: False
+
+  - name: "SCORED | 5.1.4.7 | PATCH | Ensure inactive password lock is 30 days or less"
+    lineinfile:
+      dest: "/etc/default/useradd"
+      regexp: "^INACTIVE\\s+"
+      line: "INACTIVE={{ 30 }}"
+      state: present
+    changed_when: no
+
+  - name: "SCORED | 5.1.4.7 | PATCH | Ensure inactive password lock is 30 days or less"
+    command: "chage --inactive {{ 30 }} {{ item }}"
+    with_items: "{{ egrep_5_1_4_7.stdout_lines }}"
+    when:
+      - item != "root"
+      - item != "oracle"
+      - item != "grid"
+      - item != "dsadm"
+      - item != "adminsis"
+      - item != "UserMon"
+      - item != "backup"
+      - item != "cifco"
+      - item != "exawatch"
+      - item != "dbmsvc"
+      - item != "dbmadmin"
+      - item != "dbmmonitor"
+      - item != "grid"
+      - item != "oracle"
+      - item != "opc"
+      - item != "ag800"
+      - item != "crypto"
+      - item != "useraft"
+    changed_when: no
+
+

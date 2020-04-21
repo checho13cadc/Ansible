@@ -1,0 +1,249 @@
+---
+- hosts: Prueba
+  tasks:
+
+  - name: "SCORED | 5.6.1.1 | PATCH | /root/.bash_history"
+    file:
+        dest: /root/.bash_history
+        owner: root
+        group: root
+        mode: 0644
+
+  - name: "SCORED | 5.6.1.1 | PATCH | /root/.bashrc"
+    file:
+        dest: /root/.bashrc
+        owner: root
+        group: root
+        mode: 0644
+  - name: "SCORED | 5.6.1.2 | PATCH | "
+    lineinfile:
+      state: present
+      dest: /root/.bashrc
+      regexp: '^HISTSIZE'
+      line: "HISTSIZE=100000"
+
+  - name: "SCORED | 5.6.1.2 | PATCH | line HISTSIZE /root/.bashrc"
+    lineinfile:
+      state: present
+      dest: /root/.bashrc
+      regexp: '^HISTFILESIZE'
+      line: "HISTFILESIZE=100000"
+
+  - name: "SCORED | 5.6.1.2 | PATCH | list of the .bashrc"
+    raw: find /home/ -type f -name ".bashrc"
+    register: file_arch
+
+  - name: "SCORED | 5.6.1.2 | PATCH | line HISTSIZE all files .bashrc"
+    lineinfile:
+      state: present
+      dest: "{{ item }}"
+      regexp: '^HISTSIZE'
+      line: "HISTSIZE=100000"
+    with_items:
+      - "{{ file_arch.stdout_lines }}"
+
+
+  - name: "SCORED | 5.6.1.2 | PATCH | line HISTFILESIZE all files .bashrc"
+    lineinfile:
+      state: present
+      dest: "{{ item }}"
+      regexp: '^HISTFILESIZE'
+      line: "HISTFILESIZE=100000"
+    with_items:
+      - "{{ file_arch.stdout_lines }}"
+
+
+  - name: "SCORED | 5.6.1.3 | PATCH | line readonly HISTFILE=~/.bash_history all files .bashrc"
+    lineinfile:
+      state: present
+      dest: "{{ item }}"
+      regexp: '^readonly HISTFILE'
+      line: "readonly HISTFILE=~/.bash_history"
+    with_items:
+      - "{{ file_arch.stdout_lines }}"
+
+
+  - name: "SCORED | 5.6.1.3 | PATCH | line readonly unset HISTCONTROL in all files  .bashrc"
+    lineinfile:
+      state: present
+      dest: "{{ item }}"
+      regexp: '^readonly unset'
+      line: "readonly unset HISTCONTROL"
+    with_items:
+      - "{{ file_arch.stdout_lines }}"
+
+  - name: "SCORED | 5.6.1.3 | PATCH | list of the .bash_history"
+    shell: "find /home/ -type f -name .bash_history"
+    register: file_arch
+
+  - name: "SCORED | 5.6.1.3 | PATCH | Modify .bash_history"
+    shell: chattr +a "{{ item }}"
+    with_items:
+      - "{{ file_arch.stdout_lines }}"
+
+  - name: "SCORED | 5.6.2.2 | PATCH | Ensure rsyslog or syslog-ng is installed"
+    yum:
+      name: "rsyslog"
+      state: present
+    register: rhel7cis_syslog_present
+    retries: 3
+    until: rhel7cis_syslog_present is succeeded
+    delay: 5
+  - name: "SCORED | 5.6.2.2 | PATCH | Ensure rsyslog Service is enabled"
+    command: /bin/true
+    changed_when: no
+  - name: "SCORED | 5.6.2.4 | PATCH | Ensure rsyslog default file permissions configured"
+    lineinfile:
+      dest: /etc/rsyslog.conf
+      regexp: '^\$FileCreateMode'
+      line: '$FileCreateMode 0640'
+
+  - name: "SCORED | 5.6.2.4 | PATCH | Ensure permissions on all logfiles are configured"
+    command: find /var/log -type f -exec chmod g-wx,o-rwx {} +
+    changed_when: no
+    failed_when: no
+
+
+  - name: "NOTSCORED | 5.6.2.8 | PATCH | Ensure logrotate is configured"
+    find:
+      paths: /etc/logrotate.d/
+    register: log_rotates
+
+  - name: "NOTSCORED | 5.6.2.8 | PATCH | Ensure logrotate is configured"
+    replace:
+      path: "{{ item.path }}"
+      regexp: '^(\s*)(daily|weekly|monthly|yearly)$'
+      replace: "\\1daily"
+    with_items:
+      - "{{ log_rotates.files }}"
+      - { path: "/etc/logrotate.conf" }
+
+  - name: "SCORED | 5.6.3.1 | PATCH | Ensure audit logs are not automatically deleted"
+    lineinfile:
+      dest: /etc/audit/auditd.conf
+      regexp: "^max_log_file( |=)"
+      line: "max_log_file = 10"
+      state: present
+
+  - name: "SCORED | 5.6.3.2 | PATCH | Ensure system is disabled when audit logs are full"
+    lineinfile:
+      dest: /etc/audit/auditd.conf
+      regexp: "^admin_space_left_action"
+      line: "admin_space_left_action = halt"
+      state: present
+
+  - name: "SCORED | 5.6.3.2 | PATCH | Ensure audit logs are not automatically deleted"
+    lineinfile:
+      dest: /etc/audit/auditd.conf
+      regexp: "^space_left_action"
+      line: "space_left_action = email"
+      state: present
+
+  - name: "SCORED | 5.6.3.3 | PATCH | Ensure audit logs are not automatically deleted"
+    lineinfile:
+      dest: /etc/audit/auditd.conf
+      regexp: "^max_log_file_action"
+      line: "max_log_file_action = keep_logs"
+      state: present
+
+  - name: "SCORED | 5.6.2.6 |"
+    lineinfile:
+      dest: /etc/rsyslog.conf
+      regexp: "ModLoad imtcp"
+      line: "# $ModLoad imtcp"
+      state: present
+
+  - name: "SCORED | 5.6.2.6 |"
+    lineinfile:
+      dest: /etc/rsyslog.conf
+      regexp: "InputTCPServerRun 514"
+      line: "#$InputTCPServerRun 514"
+      state: present
+
+  - name: "SCORED | 5.6.3.4 | PATCH | Ensure auditd service is enabled"
+    service:
+      name: auditd
+      state: started
+      enabled: yes
+
+  - name: "NOT SCORED | PATCH | Permission 600 /var/log/dmesg"
+    file:
+     path: /var/log/dmesg
+     mode: '0600'
+
+  - name: "NOT SCORED | PATCH | Permission 600 /var/log/lastlog"
+    file:
+     path: /var/log/lastlog
+     mode: '0600'
+
+  - name: "NOT SCORED | PATCH | Permission 600 /var/log/boot.log"
+    file:
+     path: /var/log/boot.log
+     mode: '0600'
+
+  - name: "SCORED | 5.6.3.5 | PATCH | Ensure auditing for processes that start prior to auditd is enabled"
+    replace:
+      dest: /etc/default/grub
+      regexp: '(^GRUB_CMDLINE_LINUX\s*\=\s*)(?:")(.+)(?<!audit=1)(?:")'
+      replace: '\1"\2 audit=1"'
+      follow: yes
+    ignore_errors: yes
+
+  - name: "SCORED | 5.6.3.5 | PATCH | Ensure auditing for processes that start prior to auditd is enabled"
+    command: grub2-mkconfig -o /boot/grub2/grub.cfg
+ 
+  - name: "NOTSCORED | 5.3| PATCH | Configure file /etc/audit/audit.rules"
+    blockinfile:
+      path: /etc/audit/rules.d/audit.rules
+      block: |
+        -a always,exit -F arch=b64 -S adjtimex -S settimeofday -k time-change
+        -a always,exit -F arch=b32 -S adjtimex -S settimeofday -S stime -k time-change
+        -a always,exit -F arch=b64 -S clock_settime -k time-change
+        -a always,exit -F arch=b32 -S clock_settime -k time-change
+        -w /etc/localtime -p wa -k time-change 
+        -w /etc/group -p wa -k identity
+        -w /etc/passwd -p wa -k identity
+        -w /etc/gshadow -p wa -k identity
+        -w /etc/shadow -p wa -k identity
+        -w /etc/security/opasswd -p wa -k identity
+        -a always,exit -F arch=b64 -S sethostname -S setdomainname -k system-locale
+        -a always,exit -F arch=b32 -S sethostname -S setdomainname -k system-locale
+        -w /etc/issue -p wa -k system-locale
+        -w /etc/issue.net -p wa -k system-locale
+        -w /etc/hosts -p wa -k system-locale
+        -w /etc/sysconfig/network -p wa -k system-locale
+        -w /etc/selinux/ -p wa -k MAC-policy
+        -w /var/log/faillog -p wa -k logins
+        -w /var/log/lastlog -p wa -k logins
+        -w /var/run/utmp -p wa -k session
+        -w /var/log/wtmp -p wa -k session
+        -w /var/log/btmp -p wa -k session
+        -a always,exit -F arch=b64 -S chmod -S fchmod -S fchmodat -F auid>=500 -F auid!=4294967295 -k perm_mod
+        -a always,exit -F arch=b32 -S chmod -S fchmod -S fchmodat -F auid>=500 -F auid!=4294967295 -k perm_mod
+        -a always,exit -F arch=b64 -S chown -S fchown -S fchownat -S lchown -F auid>=500 -F auid!=4294967295 -k perm_mod
+        -a always,exit -F arch=b32 -S chown -S fchown -S fchownat -S lchown -F auid>=500 -F auid!=4294967295 -k perm_mod
+        -a always,exit -F arch=b64 -S setxattr -S lsetxattr -S fsetxattr -S removexattr -S lremovexattr -S fremovexattr -F auid>=500 -F auid!=4294967295 -k perm_mod
+        -a always,exit -F arch=b32 -S setxattr -S lsetxattr -S fsetxattr -S removexattr -S lremovexattr -S fremovexattr -F auid>=500 -F auid!=4294967295 -k perm_mod
+        -a always,exit -F arch=b64 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EACCES -F auid>=500 -F auid!=4294967295 -k access
+        -a always,exit -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EACCES -F auid>=500 -F auid!=4294967295 -k access
+        -a always,exit -F arch=b64 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EPERM -F auid>=500 -F auid!=4294967295 -k access
+        -a always,exit -F arch=b32 -S creat -S open -S openat -S truncate -S ftruncate -F exit=-EPERM -F auid>=500 -F auid!=4294967295 -k access
+        -a always,exit -F arch=b64 -S mount -F auid>=500 -F auid!=4294967295 -k mounts
+        -a always,exit -F arch=b32 -S mount -F auid>=500 -F auid!=4294967295 -k mounts
+        -a always,exit -F arch=b64 -S unlink -S unlinkat -S rename -S renameat -F auid>=500 -F auid!=4294967295 -k delete
+        -a always,exit -F arch=b32 -S unlink -S unlinkat -S rename -S renameat -F auid>=500 -F auid!=4294967295 -k delete
+        -w /etc/sudoers -p wa -k scope
+        -w /etc/sudoers.d -p wa -k scope
+        -w /var/log/sudo.log -p wa -k actions
+        -w /sbin/insmod -p x -k modules
+        -w /sbin/rmmod -p x -k modules
+        -w /sbin/modprobe -p x -k modules
+        -a always,exit -F arch=b64 -S init_module -S delete_module -k modules
+        -e 2
+      create: yes
+
+  - name: restart auditd
+    shell: service auditd restart
+
+  - name: Reset auditd
+    command: "pkill -HUP -P 1 auditd"

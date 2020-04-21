@@ -1,0 +1,34 @@
+---
+- hosts: kariteslxvp036
+
+
+  gather_facts: yes
+  tasks:
+
+   - name: "Ansible copy script Aseguramiento"
+     copy:
+      src: /etc/ansible/files/Hardening/Valida_Hardening_Rhel7.sh
+      dest: /root/
+      owner: root
+      group: root
+      mode: 0777
+
+   - name: "Execute Verificacion Hardening"
+     remote_user: root
+     shell: /root/Valida_Hardening_Rhel7.sh 1> /root/{{ ansible_hostname }}.Aseguramiento.txt 2> /dev/null
+     args:
+      chdir: /root/
+
+   - name: Copy Configs to Centralized Location
+     fetch:
+      src: /root/{{ ansible_hostname }}.Aseguramiento.txt
+      dest: /backup/Servidores/Aseguramiento/
+      flat: yes
+   - name: Ansible remove file
+     file:
+      path: /root/{{ item }}
+      state: absent
+     with_items:
+       - "{{ ansible_hostname }}.Aseguramiento.txt"
+       - "Valida_Hardening_Rhel7.sh"
+

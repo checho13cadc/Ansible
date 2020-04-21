@@ -1,0 +1,76 @@
+---
+- hosts: Prueba
+  tasks:
+  - name: "NOTSCORED | 5.5.1.2 | PATCH | /etc/passwd"
+    file:
+      dest: /etc/passwd
+      state: file
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: "NOTSCORED | 5.5.1.3 | PATCH | /etc/shadow"
+    file:
+      dest: /etc/shadow
+      state: file
+      owner: root
+      group: root
+      mode: 0000
+
+
+  - name: "NOTSCORED | 5.5.1.4 | PATCH | /etc/gshadow"
+    file:
+      dest: /etc/gshadow
+      state: file
+      owner: root
+      group: root
+      mode: 0000
+
+  - name: "NOTSCORED | 5.5.1.5 | PATCH | /etc/group"
+    file: 
+      dest: /etc/group
+      state: file
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: "SCORED | 5.5.1.6 | PATCH | ln -s /dev/null /etc/systemd/system/ctrl-alt-del.target"
+    file:
+     src: /dev/null
+     dest: /etc/systemd/system/ctrl-alt-del.target
+     state: link
+
+  - name: "NOTSCORED | 5.6.2.7 | PATCH |  /var/log/messages"
+    file:
+      dest: /var/log/messages
+      state: file
+      owner: root
+      group: root
+      mode: 0600
+
+
+  - name: "NOTSCORED | 5.6.2.7 | PATCH |  /var/log/dmesg"
+    file:
+      dest: /var/log/dmesg
+      state: file
+      owner: root
+      group: root
+      mode: 0600
+
+  - name: "NOTSCORED | 5.6.2.7 | PATCH |  /var/log/boot.log"
+    file:
+      dest: /var/log/boot.log
+      state: file
+      owner: root
+      group: root
+      mode: 0600
+
+  - name: "NOTSCORED | 5.6.2.7 | PATCH |  /var/log/lastlog"
+    file:
+      dest: /var/log/lastlog
+      state: file
+      owner: root
+      group: root
+      mode: 0600
+
+

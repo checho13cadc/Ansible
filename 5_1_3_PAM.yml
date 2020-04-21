@@ -1,0 +1,111 @@
+---
+- hosts: Prueba
+  tasks:
+      
+  - name: "SCORED | 5.1.3.1 | PATCH | Ensure password hashing algorithm is SHA-512 command"
+    command: "authconfig --passalgo=sha512 --update"
+    
+  - name: "SCORED | 5.1.3.2 | PATCH | Ensure password creation requirements are configured"
+    lineinfile:
+       state: present
+       dest: /etc/security/pwquality.conf
+       regexp: '^{{ item.key }}'
+       line: '{{ item.key }} = {{ item.value }}'
+    with_items:
+       - { key: 'minlen',  value: '14' }
+       - { key: 'dcredit', value: '-1' }
+       - { key: 'ucredit', value: '-1' }
+       - { key: 'ocredit', value: '-1' }
+       - { key: 'lcredit', value: '-1' }
+       
+  - name: "SCORED | 5.1.3.5 | PATCH | Disallowing Root Access (/etc/securetty)"
+    lineinfile:
+       state: present
+       dest: /etc/securetty
+       regexp: '^{{ item.key }}'
+       line: '{{ item.value }}'
+    with_items:
+       - { key: 'tty2', value: '#tty2' }
+       - { key: 'tty3', value: '#tty3' }
+       - { key: 'tty4', value: '#tty4' }
+       - { key: 'tty5', value: '#tty5' }
+       - { key: 'tty6', value: '#tty6' }
+       - { key: 'tty7', value: '#tty7' }
+       - { key: 'tty8', value: '#tty8' }
+       - { key: 'tty9', value: '#tty9' }
+       - { key: 'tty10', value: '#tty10' }
+       - { key: 'tty11', value: '#tty11' }
+       - { key: 'ttyS0', value: '#ttyS0' }
+       - { key: 'ttysclp0', value: '#ttysclp0' }
+       
+  - name: Make System-Auth
+    copy:
+      src: "/etc/ansible/files/pamd_files/system-auth"
+      dest: "/etc/pam.d/"
+      mode: 0777
+      owner: root
+      group: root
+
+  - name: Make Password-Auth
+    copy:
+      src: "/etc/ansible/files/pamd_files/password-auth"
+      dest: "/etc/pam.d/"
+      mode: 0777
+      owner: root
+      group: root
+
+  - name: Make su
+    copy:
+      src: "/etc/ansible/files/pamd_files/su"
+      dest: "/etc/pam.d/"
+      mode: 0644
+      owner: root
+      group: root
+       
+  - name: "SCORED | 5.1.3.7 | PATCH | Ensure password expiration is 30 days or less"
+    lineinfile:
+      state: present
+      dest: /etc/login.defs
+      regexp: '^PASS_MAX_DAYS'
+      line: "PASS_MAX_DAYS 30"
+
+  - name: "SCORED | 5.1.3.7 | PATCH | PASS_MIN_DAYS is 0 days"
+    lineinfile:
+      state: present
+      dest: /etc/login.defs
+      regexp: '^PASS_MIN_DAYS'
+      line: "PASS_MIN_DAYS 0"
+
+  - name: "SCORED | 5.1.3.7 | PATCH | PASS_MIN_LEN  is 8 days"
+    lineinfile:
+      state: present
+      dest: /etc/login.defs
+      regexp: '^PASS_MIN_LEN'
+      line: "PASS_MIN_LEN 8"
+
+  - name: "SCORED | 5.1.3.7 | PATCH | PASS_WARN_AGE  is 5 days"
+    lineinfile:
+      state: present
+      dest: /etc/login.defs
+      regexp: '^PASS_WARN_AGE'
+      line: "PASS_WARN_AGE 5"
+
+  - name: "SCORED | 5.1.3.7 | PATCH | LOGIN_RETRIES is 3 days"
+    lineinfile:
+      state: present
+      dest: /etc/login.defs
+      regexp: '^LOGIN_RETRIES'
+      line: "LOGIN_RETRIES 3"
+      
+  - name: "SCORED | 5.1.3.8 | PATCH | Restringir acceso a las carpetas /etc/rc.d, /etc/rc.d/ y /etc/init.d/"
+    file:
+      path: /etc/rc.d/
+      state: directory
+      recurse: yes
+      mode: '0700'
+
+  - name: "SCORED | 5.1.3.8 | PATCH | Restringir acceso a las carpetas /etc/rc.d, /etc/rc.d/ y /etc/init.d/"
+    file:
+      path: /etc/rc.d
+      state: directory
+      mode: '0740'

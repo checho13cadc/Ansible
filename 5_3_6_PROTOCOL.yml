@@ -1,0 +1,25 @@
+---
+- hosts: Prueba
+  tasks:
+  - name: "NOTSCORED | 5.3.6 | PATCH | /etc/modprobe.d/CIS.conf"
+    blockinfile:
+      path: /etc/modprobe.d/CIS.conf
+      block: |
+        install dccp /bin/true
+        install sctp /bin/true
+        install rds /bin/true
+        install tipc /bin/true
+      create: yes
+
+  - name: "SCORED |5.4.6.1 | PATCH | Ensure core dumps are restricted"
+    lineinfile:
+      path: /etc/security/limits.conf
+      line : "* hard core 0"
+      insertbefore: "#*               hard    rss             10000"
+      state: present
+
+  - name: "SCORED | 5.5.1.6 | PATCH | Ensure core dumps are restricted modify File"
+    lineinfile:
+      path: /etc/security/limits.d/20-nproc.conf
+      line : "* hard core 0"
+      create: yes
