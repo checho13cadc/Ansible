@@ -1,0 +1,15 @@
+---
+- import_playbook: 5_1_1_Crontab.yml
+- import_playbook: 5_1_2_SSH.yml
+- import_playbook: 5_1_3_PAM.yml
+- import_playbook: 5_1_4_Users.yml
+- import_playbook: 5_1_5_Banner.yml
+- import_playbook: 5_2_1_Packages.yml
+- import_playbook: 5_2_2_Serv.yml
+- import_playbook: 5_3_6_PROTOCOL.yml
+- import_playbook: 5_3_1_Red.yml
+- import_playbook: 5_4_1_FileSystems.yml
+- import_playbook: 5_4_3_AIDE.yml
+- import_playbook: 5_4_5_ARRANQUE.yml
+- import_playbook: 5_5_1_Maintenance.yml
+- import_playbook: 5_6_Auditoria.yml
